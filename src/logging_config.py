@@ -11,11 +11,12 @@ class Logger:
     os.makedirs(LOG_DIR, exist_ok=True)
 
     def __init__(self, name: str):
+        #print('Создан объект класса Logger')
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
 
         # Формат логирования
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
 
         # Создание логирования в файл
         file_handler = logging.FileHandler(os.path.join(self.LOG_DIR, name + '.log'))
@@ -44,8 +45,9 @@ class Logger:
         self.logger.critical(message)
 
 
-logger = Logger('telegram_bot')
+
 
 # Данную функцию вызывать в начале файла, где нужно логирование сразу после импортов, пример logger = get_app_logger()
 def get_app_logger():
+    logger = Logger('telegram_bot')
     return logger
