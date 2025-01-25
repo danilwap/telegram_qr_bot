@@ -1,5 +1,7 @@
 import sqlite3
 
+
+
 connection = sqlite3.connect('my_database.db')
 
 
@@ -11,19 +13,24 @@ class DatabaseManager:
 
     def create_tables(self):
         self.query(
-            'CREATE TABLE IF NOT EXISTS users(id INT PRIMARY KEY AUTOINCREMENT, '
-            'users_id INT, '
+            'CREATE TABLE IF NOT EXISTS users('
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+            'user_id INTEGER, '
+            'first_name text, '
+            'last_name text, '
             'username text, '
-            'date datetime)'
-
+            'first_entry TIMESTAMP DEFAULT CURRENT_TIMESTAMP, )'
         )
 
 
-    def query(self, arg, values=None):
-        if values is None:
-            self.cur.execute(arg)
-        else:
-            self.cur.execute(arg, values)
+    def query(self, sql, params=None):
+        try:
+            if params is None:
+                self.cur.execute(sql)
+            else:
+                self.cur.execute(sql, params)
+        except sqlite3.Error as e:
+            print()
         self.conn.commit()
 
 
