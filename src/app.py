@@ -1,5 +1,4 @@
-import logging, asyncio
-import sys
+import asyncio
 
 from aiogram import F, types
 from aiogram.fsm.context import FSMContext
@@ -10,11 +9,12 @@ from aiogram.filters.state import StatesGroup, State
 from bot import dp, bot
 from utils.create_qr.create_QR import create_qr
 from utils.db.core import DatabaseManager
+from logging_config import get_app_logger
+from data import config
 
 db = DatabaseManager('my_database.db')
+logger = get_app_logger()
 
-
-from data import config
 
 class QR_State(StatesGroup):
     enter_text = State()
@@ -26,14 +26,15 @@ list_status_subscribe = ['creator', 'administrator', 'member', 'restricted']
 
 # Отправка сообщения, если не подписан на канал
 async def not_subscribe_channel(message: Message) -> None:
-
     builder_not_subscribe = InlineKeyboardBuilder()
     builder_not_subscribe.row(InlineKeyboardButton(text='Подписаться на канал', url='https://t.me/danila_beskrokov'))
     builder_not_subscribe.row(InlineKeyboardButton(text='Я подписался', callback_data='/menu'))
 
-    await message.answer_photo(photo='AgACAgIAAxkBAAO9ZrkiXhTVuvCJvkt3mqB7aB4Z4rkAAjbhMRtsDslJq7x3TmCTeh4BAAMCAAN4AAM1BA', caption="Это бот, в котором вы можете сгенерировать qr-код для вашей ссылки или текста. "
-                         "Для того, чтобы пользоваться ботом вам нужно всего лишь подписаться на канал по кнопке "
-                         "в сообщении и нажать я подписался", reply_markup=builder_not_subscribe.as_markup())
+    await message.answer_photo(
+        photo='AgACAgIAAxkBAAO9ZrkiXhTVuvCJvkt3mqB7aB4Z4rkAAjbhMRtsDslJq7x3TmCTeh4BAAMCAAN4AAM1BA',
+        caption="Это бот, в котором вы можете сгенерировать qr-код для вашей ссылки или текста. "
+                "Для того, чтобы пользоваться ботом вам нужно всего лишь подписаться на канал по кнопке "
+                "в сообщении и нажать я подписался", reply_markup=builder_not_subscribe.as_markup())
 
 
 @dp.message(Command(commands=["start"]))
@@ -49,14 +50,13 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
         builder_is_subscribe.row(InlineKeyboardButton(text='Другие полезные боты', callback_data='other_bots'))
         builder_is_subscribe.row(InlineKeyboardButton(text='Поблагодарить автора бота', callback_data='gift_creator'))
         builder_is_subscribe.row(InlineKeyboardButton(text='Заказать разработку бота', callback_data='order_bot'))
-        await message.answer_photo(photo='AgACAgIAAxkBAAO9ZrkiXhTVuvCJvkt3mqB7aB4Z4rkAAjbhMRtsDslJq7x3TmCTeh4BAAMCAAN4AAM1BA', caption="Добрый день! В данном боте вы можете создать и скачать qr-код для ссылки или какого-либо текста"
-                             " или перейти в другие полезные боты", reply_markup=builder_is_subscribe.as_markup())
+        await message.answer_photo(
+            photo='AgACAgIAAxkBAAO9ZrkiXhTVuvCJvkt3mqB7aB4Z4rkAAjbhMRtsDslJq7x3TmCTeh4BAAMCAAN4AAM1BA',
+            caption="Добрый день! В данном боте вы можете создать и скачать qr-код для ссылки или какого-либо текста"
+                    " или перейти в другие полезные боты", reply_markup=builder_is_subscribe.as_markup())
 
     else:
         await not_subscribe_channel(message)
-
-
-
 
 
 @dp.callback_query(F.func(lambda c: c.data and c.data == 'create_qr'))
@@ -101,9 +101,8 @@ async def get_size_qr(message: Message, state: FSMContext):
         keyboard_qr.row(InlineKeyboardButton(text='Отблагодарить автора бота', callback_data='gift_creator'))
         keyboard_qr.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
 
-
         await message.answer_photo(photo=photo, reply_markup=keyboard_qr.as_markup())
-
+        logger.info(f"{message.from_user.id} {message.from_user.username} {message.from_user.first_name} {message.from_user.last_name} создал qr-код")
         await state.clear()
     else:
         await message.answer('Напишите размер qr-кода от 1 до 10')
@@ -114,12 +113,10 @@ async def get_size_qr(message: Message, state: FSMContext):
 async def other_bots(callback_query: types.CallbackQuery, state: FSMContext) -> None:
     await state.clear()
 
-
     other_bots_buttons = InlineKeyboardBuilder()
     other_bots_buttons.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
     await callback_query.message.answer('В будущем тут будут полезные боты, созданные мной!',
                                         reply_markup=other_bots_buttons.as_markup())
-
 
 
 # Команда поблагодарить автора
@@ -130,7 +127,7 @@ async def gift_creator(callback_query: types.CallbackQuery, state: FSMContext) -
     gift_creator_buttons.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
     await callback_query.message.answer('Буду очень признателен за любую благодарность. '
                                         'Можно перевести по номеру карты `2200701026272721` '
-                                        '(Просто нажмите на номер, чтобы скопировать)', parse_mode= 'markdown',
+                                        '(Просто нажмите на номер, чтобы скопировать)', parse_mode='markdown',
                                         reply_markup=gift_creator_buttons.as_markup())
 
 
@@ -151,7 +148,7 @@ async def request_menu(callback_query: types.CallbackQuery, state: FSMContext) -
     await command_start_handler(callback_query.message, state)
 
 
-#@dp.message()
+# @dp.message()
 async def get_id_file(message: Message):
     print(message)
 
@@ -161,18 +158,21 @@ async def all_unexpected_messages(message: Message, state: FSMContext):
     user_channel_status = await bot.get_chat_member(chat_id=config.CHANNEL_ID, user_id=message.from_user.id)
 
     if user_channel_status.status in list_status_subscribe:
-        await message.answer_photo(photo='AgACAgIAAxkBAAO3ZrkhabyWDSfo3tA7S-dKkm-uSS8AAjHhMRtsDslJceOHEKevqVsBAAMCAAN4AAM1BA',
-                               caption='Я пока не знаю как ответить на это сообщение, я ещё только учусь, '
-                                       'но в будущем я смогу ответить на этот вопрос.')
+        await message.answer_photo(
+            photo='AgACAgIAAxkBAAO3ZrkhabyWDSfo3tA7S-dKkm-uSS8AAjHhMRtsDslJceOHEKevqVsBAAMCAAN4AAM1BA',
+            caption='Я пока не знаю как ответить на это сообщение, я ещё только учусь, '
+                    'но в будущем я смогу ответить на этот вопрос.')
 
 
     else:
         await not_subscribe_channel(message)
+    logger.info(f'{message.from_user.username} - {message.text}')
+
 
 async def main() -> None:
+    logger.info('Bot started')
     await dp.start_polling(bot)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
