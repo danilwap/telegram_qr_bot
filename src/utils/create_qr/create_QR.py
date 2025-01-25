@@ -1,6 +1,6 @@
 import qrcode
 import datetime
-
+from celery_app import celery_app
 
 def create_qr(text: str, size: str, id: int):
     start_time = datetime.datetime.now()

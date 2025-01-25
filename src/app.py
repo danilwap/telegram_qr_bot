@@ -9,6 +9,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 from aiogram.filters.state import StatesGroup, State
 from bot import dp, bot
 from utils.create_qr.create_QR import create_qr
+from utils.db.core import DatabaseManager
+
+db = DatabaseManager('my_database.db')
 
 
 from data import config
