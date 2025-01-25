@@ -1,6 +1,6 @@
 import qrcode
 import datetime
-from src.logging_config import get_app_logger
+from logging_config import get_app_logger
 
 logger = get_app_logger()
 
