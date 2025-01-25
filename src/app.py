@@ -16,6 +16,16 @@ db = DatabaseManager('my_database.db')
 logger = get_app_logger()
 
 
+class Image_Storage:
+    def __init__(self, image_path: str, image_id: str = None):
+        self.image_id = image_id
+        self.image_path = image_path
+
+
+image_small_prince_look_for_qr = Image_Storage('data/photo/small_prince_look_for_qr.jpg')
+image_small_prince = Image_Storage('data/photo/small_prince.jpg')
+
+
 class QR_State(StatesGroup):
     enter_text = State()
     choosing_size_qr = State()
@@ -24,14 +34,26 @@ class QR_State(StatesGroup):
 list_status_subscribe = ['creator', 'administrator', 'member', 'restricted']
 
 
+async def get_photo_id(message: Message, name_file: str) -> str:
+
+    photo = FSInputFile(f"{name_file}")
+    photo_id_cor = await bot.send_photo(config.ADMINS[0], photo)
+    photo_id = photo_id_cor.photo[-1].file_id
+    logger.info(f'Получено id изображения {name_file}')
+    return photo_id
+
+
 # Отправка сообщения, если не подписан на канал
 async def not_subscribe_channel(message: Message) -> None:
+    if image_small_prince_look_for_qr.image_id is None:
+        image_small_prince_look_for_qr.image_id = await get_photo_id(message, image_small_prince_look_for_qr.image_path)
+
     builder_not_subscribe = InlineKeyboardBuilder()
     builder_not_subscribe.row(InlineKeyboardButton(text='Подписаться на канал', url='https://t.me/danila_beskrokov'))
     builder_not_subscribe.row(InlineKeyboardButton(text='Я подписался', callback_data='/menu'))
 
     await message.answer_photo(
-        photo='AgACAgIAAxkBAAO9ZrkiXhTVuvCJvkt3mqB7aB4Z4rkAAjbhMRtsDslJq7x3TmCTeh4BAAMCAAN4AAM1BA',
+        photo=image_small_prince_look_for_qr.image_id,
         caption="Это бот, в котором вы можете сгенерировать qr-код для вашей ссылки или текста. "
                 "Для того, чтобы пользоваться ботом вам нужно всего лишь подписаться на канал по кнопке "
                 "в сообщении и нажать я подписался", reply_markup=builder_not_subscribe.as_markup())
@@ -39,6 +61,9 @@ async def not_subscribe_channel(message: Message) -> None:
 
 @dp.message(Command(commands=["start"]))
 async def command_start_handler(message: Message, state: FSMContext) -> None:
+    if image_small_prince_look_for_qr.image_id is None:
+        image_small_prince_look_for_qr.image_id = await get_photo_id(message, image_small_prince_look_for_qr.image_path)
+
     if state:
         await state.clear()
     user_channel_status = await bot.get_chat_member(chat_id=config.CHANNEL_ID, user_id=message.from_user.id)
@@ -51,7 +76,7 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
         builder_is_subscribe.row(InlineKeyboardButton(text='Поблагодарить автора бота', callback_data='gift_creator'))
         builder_is_subscribe.row(InlineKeyboardButton(text='Заказать разработку бота', callback_data='order_bot'))
         await message.answer_photo(
-            photo='AgACAgIAAxkBAAO9ZrkiXhTVuvCJvkt3mqB7aB4Z4rkAAjbhMRtsDslJq7x3TmCTeh4BAAMCAAN4AAM1BA',
+            photo=image_small_prince_look_for_qr.image_id,
             caption="Добрый день! В данном боте вы можете создать и скачать qr-код для ссылки или какого-либо текста"
                     " или перейти в другие полезные боты", reply_markup=builder_is_subscribe.as_markup())
 
@@ -102,7 +127,8 @@ async def get_size_qr(message: Message, state: FSMContext):
         keyboard_qr.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
 
         await message.answer_photo(photo=photo, reply_markup=keyboard_qr.as_markup())
-        logger.info(f"{message.from_user.id} {message.from_user.username} {message.from_user.first_name} {message.from_user.last_name} создал qr-код")
+        logger.info(
+            f"{message.from_user.id} {message.from_user.username} {message.from_user.first_name} {message.from_user.last_name} создал qr-код")
         await state.clear()
     else:
         await message.answer('Напишите размер qr-кода от 1 до 10')
@@ -155,6 +181,9 @@ async def get_id_file(message: Message):
 
 @dp.message()
 async def all_unexpected_messages(message: Message, state: FSMContext):
+    if image_small_prince.image_id is None:
+        image_small_prince.image_id = await get_photo_id(message, image_small_prince.image_path)
+
     user_channel_status = await bot.get_chat_member(chat_id=config.CHANNEL_ID, user_id=message.from_user.id)
 
     if user_channel_status.status in list_status_subscribe:
