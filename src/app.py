@@ -9,11 +9,11 @@ from aiogram.filters.state import StatesGroup, State
 from bot import dp, bot
 from utils.create_qr.create_QR import create_qr
 from utils.db.core import DatabaseManager
-from logging_config import get_app_logger
 from data import config
 
+from logging_config import logger
+
 db = DatabaseManager('my_database.db')
-logger = get_app_logger()
 
 
 class Image_Storage:
@@ -21,9 +21,9 @@ class Image_Storage:
         self.image_id = image_id
         self.image_path = image_path
 
-
-image_small_prince_look_for_qr = Image_Storage('data/photo/small_prince_look_for_qr.jpg')
-image_small_prince = Image_Storage('data/photo/small_prince.jpg')
+# Проблема в разности запуска, здесь запускается из папки src, а в докере из директории проекта
+image_small_prince_look_for_qr = Image_Storage('src/data/photo/small_prince_look_for_qr.jpg')
+image_small_prince = Image_Storage('src/data/photo/small_prince.jpg')
 
 
 class QR_State(StatesGroup):
@@ -35,7 +35,6 @@ list_status_subscribe = ['creator', 'administrator', 'member', 'restricted']
 
 
 async def get_photo_id(message: Message, name_file: str) -> str:
-
     photo = FSInputFile(f"{name_file}")
     photo_id_cor = await bot.send_photo(config.ADMINS[0], photo)
     photo_id = photo_id_cor.photo[-1].file_id

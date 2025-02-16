@@ -48,6 +48,5 @@ class Logger:
 
 
 # Данную функцию вызывать в начале файла, где нужно логирование сразу после импортов, пример logger = get_app_logger()
-def get_app_logger():
-    logger = Logger('telegram_bot')
-    return logger
+logger = Logger('telegram_bot')
+
