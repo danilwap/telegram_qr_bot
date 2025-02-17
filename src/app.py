@@ -187,7 +187,7 @@ async def all_unexpected_messages(message: Message, state: FSMContext):
 
     if user_channel_status.status in list_status_subscribe:
         await message.answer_photo(
-            photo='AgACAgIAAxkBAAO3ZrkhabyWDSfo3tA7S-dKkm-uSS8AAjHhMRtsDslJceOHEKevqVsBAAMCAAN4AAM1BA',
+            photo=image_small_prince.image_id,
             caption='Я пока не знаю как ответить на это сообщение, я ещё только учусь, '
                     'но в будущем я смогу ответить на этот вопрос.')
 
