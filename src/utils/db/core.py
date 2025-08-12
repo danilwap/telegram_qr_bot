@@ -19,9 +19,18 @@ class DatabaseManager:
             'first_name text, '
             'last_name text, '
             'username text, '
-            'first_entry TIMESTAMP DEFAULT CURRENT_TIMESTAMP, )'
+            'first_entry TIMESTAMP DEFAULT CURRENT_TIMESTAMP)'
         )
-
+        print('creating tables... 50%')
+        self.query(
+            'CREATE TABLE IF NOT EXISTS qr_generations('
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, '
+            'user_id INTEGER, '
+            'username TEXT, '
+            'generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, '
+            'text TEXT)'
+        )
+        print('creating tables... 100%')
 
     def query(self, sql, params=None):
         try:
@@ -30,7 +39,7 @@ class DatabaseManager:
             else:
                 self.cur.execute(sql, params)
         except sqlite3.Error as e:
-            print()
+            print(e)
         self.conn.commit()
 
 
@@ -62,11 +71,3 @@ class DatabaseManager:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-
-
-
-
-
-
-
-
