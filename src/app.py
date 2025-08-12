@@ -13,7 +13,6 @@ from data import config
 
 from logging_config import logger
 
-db = DatabaseManager('my_database.db')
 
 
 class Image_Storage:
@@ -48,7 +47,7 @@ async def not_subscribe_channel(message: Message) -> None:
         image_small_prince_look_for_qr.image_id = await get_photo_id(message, image_small_prince_look_for_qr.image_path)
 
     builder_not_subscribe = InlineKeyboardBuilder()
-    builder_not_subscribe.row(InlineKeyboardButton(text='Подписаться на канал', url='https://t.me/danila_beskrokov'))
+    builder_not_subscribe.row(InlineKeyboardButton(text='Подписаться на канал', url='https://t.me/AutoProcessTG'))
     builder_not_subscribe.row(InlineKeyboardButton(text='Я подписался', callback_data='/menu'))
 
     await message.answer_photo(
@@ -198,8 +197,19 @@ async def all_unexpected_messages(message: Message, state: FSMContext):
 
 
 async def main() -> None:
-    logger.info('Bot started')
-    await dp.start_polling(bot)
+    db = DatabaseManager('my_database.db')
+    db.create_tables()  # если create_tables сделаешь async, или просто вызов db.create_tables()
+
+    dp['db'] = db
+
+    try:
+        logger.info('Bot started.')
+        await dp.start_polling(bot)
+
+    finally:
+        # При завершении работы закрываем базу
+        db.close()
+        logger.info('Bot stopped and database connection closed.')
 
 
 if __name__ == '__main__':
