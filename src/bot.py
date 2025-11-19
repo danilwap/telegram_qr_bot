@@ -3,7 +3,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from data import config
+from telegramQRbot.data import config
 
 bot = Bot(
     token=config.BOT_TOKEN,

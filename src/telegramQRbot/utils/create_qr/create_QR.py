@@ -8,5 +8,3 @@ def create_qr(text: str, size: str, id: int):
     qr.save(f'result{id}.png')
     logger.info(f'Текст qr: {text}, размер: {size}, id: {id}\nЗатраченное время: {datetime.datetime.now() - start_time}')
     return f'result{id}.png'
-
-

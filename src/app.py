@@ -7,9 +7,9 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 from aiogram.filters.state import StatesGroup, State
 from bot import dp, bot
-from utils.create_qr.create_QR import create_qr
-from utils.db.core import DatabaseManager
-from data import config
+from telegramQRbot.utils.create_qr.create_QR import create_qr
+from telegramQRbot.utils.db.core import DatabaseManager
+from telegramQRbot.data import config
 
 from logging_config import logger
 
@@ -22,11 +22,11 @@ class Image_Storage:
 
 if config.DEV_CHECK == True:
 # Проблема в разности запуска, здесь запускается из папки src, а в докере из директории проекта, при деплое сделать src/
-    image_small_prince_look_for_qr = Image_Storage('data/photo/small_prince_look_for_qr.jpg')
-    image_small_prince = Image_Storage('data/photo/small_prince.jpg')
+    image_small_prince_look_for_qr = Image_Storage('telegramQRbot/assets/images/small_prince_look_for_qr.jpg')
+    image_small_prince = Image_Storage('telegramQRbot/assets/images/small_prince.jpg')
 else:
-    image_small_prince_look_for_qr = Image_Storage('src/data/photo/small_prince_look_for_qr.jpg')
-    image_small_prince = Image_Storage('src/data/photo/small_prince.jpg')
+    image_small_prince_look_for_qr = Image_Storage('src/telegramQRbot/assets/images/small_prince_look_for_qr.jpg')
+    image_small_prince = Image_Storage('src/telegramQRbot/assets/images/small_prince.jpg')
 
 class QR_State(StatesGroup):
     enter_text = State()
