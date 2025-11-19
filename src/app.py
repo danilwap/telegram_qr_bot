@@ -20,10 +20,13 @@ class Image_Storage:
         self.image_id = image_id
         self.image_path = image_path
 
-# Проблема в разности запуска, здесь запускается из папки src, а в докере из директории проекта
-image_small_prince_look_for_qr = Image_Storage('src/data/photo/small_prince_look_for_qr.jpg')
-image_small_prince = Image_Storage('src/data/photo/small_prince.jpg')
-
+if config.DEV_CHECK == True:
+# Проблема в разности запуска, здесь запускается из папки src, а в докере из директории проекта, при деплое сделать src/
+    image_small_prince_look_for_qr = Image_Storage('data/photo/small_prince_look_for_qr.jpg')
+    image_small_prince = Image_Storage('data/photo/small_prince.jpg')
+else:
+    image_small_prince_look_for_qr = Image_Storage('src/data/photo/small_prince_look_for_qr.jpg')
+    image_small_prince = Image_Storage('src/data/photo/small_prince.jpg')
 
 class QR_State(StatesGroup):
     enter_text = State()
