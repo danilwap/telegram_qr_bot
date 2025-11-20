@@ -8,4 +8,6 @@ src/utils/create_qr/__pycache__/
 *.log
 *.db
 config.py
-
+.env
+.env.*
+!.env.example

@@ -6,10 +6,9 @@ from aiogram.types import Message, FSInputFile
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 from aiogram.filters.state import StatesGroup, State
-from bot import dp, bot
+from bot import dp, bot, DEV_CHECK, CHANNEL_ID, ADMINS
 from telegramQRbot.utils.create_qr.create_QR import create_qr
 from telegramQRbot.utils.db.core import DatabaseManager
-from telegramQRbot.data import config
 
 
 from pathlib import Path
@@ -30,7 +29,7 @@ class Image_Storage:
         self.image_id = image_id
         self.image_path = image_path
 
-if config.DEV_CHECK == True:
+if DEV_CHECK == "True":
 # Проблема в разности запуска, здесь запускается из папки src, а в докере из директории проекта, при деплое сделать src/
     image_small_prince_look_for_qr = Image_Storage('telegramQRbot/assets/images/small_prince_look_for_qr.jpg')
     image_small_prince = Image_Storage('telegramQRbot/assets/images/small_prince.jpg')
@@ -48,7 +47,7 @@ list_status_subscribe = ['creator', 'administrator', 'member', 'restricted']
 
 async def get_photo_id(message: Message, name_file: str) -> str:
     photo = FSInputFile(f"{name_file}")
-    photo_id_cor = await bot.send_photo(config.ADMINS[0], photo)
+    photo_id_cor = await bot.send_photo(ADMINS[0], photo)
     photo_id = photo_id_cor.photo[-1].file_id
     logger.info(f'Получено id изображения {name_file}')
     return photo_id
@@ -77,7 +76,7 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
 
     if state:
         await state.clear()
-    user_channel_status = await bot.get_chat_member(chat_id=config.CHANNEL_ID, user_id=message.from_user.id)
+    user_channel_status = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=message.from_user.id)
 
     if user_channel_status.status in list_status_subscribe:
         builder_is_subscribe = InlineKeyboardBuilder()
@@ -99,7 +98,7 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
 async def command_start_handler2(callback_query: types.CallbackQuery, state: FSMContext) -> None:
     if state:
         await state.clear()
-    user_channel_status = await bot.get_chat_member(chat_id=config.CHANNEL_ID, user_id=callback_query.from_user.id)
+    user_channel_status = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=callback_query.from_user.id)
 
     if user_channel_status.status in list_status_subscribe:
         keyboards_create_qr = InlineKeyboardBuilder()
@@ -195,7 +194,7 @@ async def all_unexpected_messages(message: Message, state: FSMContext):
     if image_small_prince.image_id is None:
         image_small_prince.image_id = await get_photo_id(message, image_small_prince.image_path)
 
-    user_channel_status = await bot.get_chat_member(chat_id=config.CHANNEL_ID, user_id=message.from_user.id)
+    user_channel_status = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=message.from_user.id)
 
     if user_channel_status.status in list_status_subscribe:
         await message.answer_photo(
