@@ -1,8 +1,17 @@
 import sqlite3
 
-from logging_config import logger
+from logging_config import get_logger
 
-connection = sqlite3.connect('my_database.db')
+logger = get_logger(__name__)
+
+
+
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent  # корень проекта
+DB_PATH = BASE_DIR / "data" / "my_database.db"
+
+
 
 
 class DatabaseManager:

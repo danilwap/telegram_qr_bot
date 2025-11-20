@@ -1,6 +1,9 @@
 import qrcode
 import datetime
-from logging_config import logger
+from logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 def create_qr(text: str, size: str, id: int):
     start_time = datetime.datetime.now()

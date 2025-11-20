@@ -1,52 +1,60 @@
 import logging
-import os
+import json
+import sys
+from pathlib import Path
 
 
-class Logger:
-    '''Класс для логирования
-        При создание объекта передать имя файла, который будет хранить имя файла'''
-
-    # Объявление адреса для логирования, если не существует, то его создание
-    LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-    os.makedirs(LOG_DIR, exist_ok=True)
-
-    def __init__(self, name: str):
-        #print('Создан объект класса Logger')
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
-
-        # Формат логирования
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s %(filename)s:%(lineno)d')
-
-        # Создание логирования в файл
-        file_handler = logging.FileHandler(os.path.join(self.LOG_DIR, name + '.log'))
-        file_handler.setFormatter(formatter)
-
-        # Создание логирования в консоль
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
-
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(stream_handler)
-
-    def debug(self, message):
-        self.logger.debug(message)
-
-    def info(self, message):
-        self.logger.info(message)
-
-    def warning(self, message):
-        self.logger.warning(message)
-
-    def error(self, message):
-        self.logger.error(message)
-
-    def critical(self, message):
-        self.logger.critical(message)
+# Корень проекта: src/logging_config.py → src → ..
+BASE_DIR = Path(__file__).resolve().parent.parent
+LOGS_DIR = BASE_DIR / "data" / "logs"
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 
+class JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        log_record = {
+            "time": self.formatTime(record, self.datefmt),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "filename": record.filename,
+            "lineno": record.lineno,
+            "module": record.module,
+            "funcName": record.funcName,
+        }
+
+        if record.exc_info:
+            log_record["exc_info"] = self.formatException(record.exc_info)
+
+        return json.dumps(log_record, ensure_ascii=False)
 
 
-# Данную функцию вызывать в начале файла, где нужно логирование сразу после импортов, пример logger = get_app_logger()
-logger = Logger('telegram_bot')
+def get_logger(name: str) -> logging.Logger:
+    """
+    Создаёт/возвращает логгер для модуля `name`.
+    - Пишет JSON в stdout
+    - Пишет JSON в отдельный файл для каждого модуля: data/logs/<module_name>.log
+    """
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
 
+    # Если хендлеры уже есть — просто возвращаем (чтобы не дублировать вывод)
+    if logger.handlers:
+        return logger
+
+    formatter = JsonFormatter()
+
+    # 1) JSON в stdout (для Docker / локальной отладки)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
+    # 2) JSON в файл, отдельный под каждый модуль
+    safe_name = name.replace(".", "_")  # my_package.module → my_package_module.log
+    log_file = LOGS_DIR / f"{safe_name}.log"
+
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    return logger

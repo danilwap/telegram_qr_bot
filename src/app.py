@@ -11,7 +11,17 @@ from telegramQRbot.utils.create_qr.create_QR import create_qr
 from telegramQRbot.utils.db.core import DatabaseManager
 from telegramQRbot.data import config
 
-from logging_config import logger
+
+from pathlib import Path
+from logging_config import get_logger
+
+logger = get_logger(__name__)
+
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BASE_DIR / "data" / "my_database.db"
+
 
 
 
@@ -200,7 +210,7 @@ async def all_unexpected_messages(message: Message, state: FSMContext):
 
 
 async def main() -> None:
-    db = DatabaseManager('my_database.db')
+    db = DatabaseManager(DB_PATH)
     db.create_tables()  # если create_tables сделаешь async, или просто вызов db.create_tables()
 
     dp['db'] = db
