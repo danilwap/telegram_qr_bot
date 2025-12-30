@@ -1,0 +1,45 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  bot:
+    build:
+
+      context: .
+
+      dockerfile: Dockerfile
+
+    depends_on:
+      - redis
+
+    environment:
+      REDIS_URL: redis://redis:6379/0
+
+    # Если используешь .env — подключаем
+    env_file:
+      - .env
+
+    # Монтируем только то, что нужно менять в разработке
+    volumes:
+      - ./src:/docker/telegramqrbot/src
+      - ./data:/docker/telegramqrbot/data
+
+    # Перезапускаем, если упал
+    restart: unless-stopped
+
+    # Можно переопределить CMD, но он у тебя и так есть в Dockerfile
+    command: python3 src/main.py
+
+volumes:
+  redis_data:

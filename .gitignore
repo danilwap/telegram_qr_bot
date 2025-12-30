@@ -1,5 +1,6 @@
 .venv
 src/data/config.py
+__pycache__/
 .idea
 src/__pycache__/
 plan.txt
