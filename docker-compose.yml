@@ -1,17 +1,22 @@
 services:
-  redis:
-    image: redis:7-alpine
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
     ports:
-      - "6379:6379"
+      - "5672:5672"    # AMQP (для Celery)
+      - "15672:15672"  # Web UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     volumes:
-      - redis_data:/data
-    command: [ "redis-server", "--appendonly", "yes" ]
+      - rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   bot:
     build:
@@ -21,10 +26,13 @@ services:
       dockerfile: Dockerfile
 
     depends_on:
-      - redis
+      - rabbitmq
 
     environment:
-      REDIS_URL: redis://redis:6379/0
+        CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+        PYTHONPATH: /docker/telegramqrbot/src
+
+    working_dir: /docker/telegramqrbot
 
     # Если используешь .env — подключаем
     env_file:
@@ -41,5 +49,26 @@ services:
     # Можно переопределить CMD, но он у тебя и так есть в Dockerfile
     command: python3 src/main.py
 
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PYTHONPATH: /docker/telegramqrbot/src
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./src:/docker/telegramqrbot/src
+      - ./data:/docker/telegramqrbot/data
+    working_dir: /docker/telegramqrbot
+    command: celery -A telegramQRbot.celery_app:celery_app worker -l info
+    restart: unless-stopped
+
+
 volumes:
-  redis_data:
+  rabbitmq_data:
+

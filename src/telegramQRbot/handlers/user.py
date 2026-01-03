@@ -5,14 +5,17 @@ from aiogram.types import Message, FSInputFile
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 from aiogram.filters.state import StatesGroup, State
-from telegramQRbot.utils.create_qr.create_QR import create_qr
+# from telegramQRbot.utils.create_qr.create_QR import create_qr
 from telegramQRbot.config import Config
+
+from telegramQRbot.tasks.qr import generate_qr
+
 
 from logging_config import get_logger
 from uuid import uuid4
 import time
 
-from services.qr_queue import enqueue_qr_job
+
 
 
 router = Router()
@@ -136,8 +139,7 @@ async def get_size_qr(message: Message, state: FSMContext):
         await message.answer(f'Запрос принят! 💭Уже создаю ответ!')
 
 
-        """Создание QR-кода в redis"""
-        from services.qr_queue import enqueue_qr_job
+
 
         # внутри handler-а:
         job_id = str(uuid4())
@@ -152,9 +154,10 @@ async def get_size_qr(message: Message, state: FSMContext):
             "attempt": 0,
         }
 
-        stream_id = await enqueue_qr_job(payload)
+        generate_qr.delay(payload)
+        await message.answer("Запрос принят, генерирую…")
 
-        await message.answer(f"Принял задачу ✅\njob_id: {job_id}\nstream_id: {stream_id}")
+
 
 
 

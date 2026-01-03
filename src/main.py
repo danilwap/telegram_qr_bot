@@ -6,9 +6,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "data" / "my_database.db"
 from logging_config import get_logger
 from telegramQRbot.bot import bot, dp
-from telegramQRbot import setup_routers
+from telegramQRbot.app import setup_routers
 from telegramQRbot.config import Config
-from infrastructure.redis_client import get_redis
+
 
 logger = get_logger(__name__)
 from pathlib import Path
@@ -33,8 +33,6 @@ ADMINS = ADMINS.split(",") if ADMINS else []
 
 
 async def main() -> None:
-    redis = get_redis()
-    await redis.ping()
 
     db = DatabaseManager(DB_PATH)
     db.create_tables()  # если create_tables сделаешь async, или просто вызов db.create_tables()
@@ -56,10 +54,6 @@ async def main() -> None:
         await dp.start_polling(bot)
 
     finally:
-        # При завершении работы закрываем базу
-        redis = get_redis()
-        await redis.close()
-
         db.close()
         logger.info('Bot stopped and database connection closed.')
 
