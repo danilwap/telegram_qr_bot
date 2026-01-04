@@ -21,3 +21,5 @@ celery_app.conf.update(
 )
 
 celery_app.autodiscover_tasks(["telegramQRbot.tasks"])
+
+import telegramQRbot.tasks.qr

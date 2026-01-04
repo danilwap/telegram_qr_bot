@@ -5,7 +5,7 @@ from aiogram.types import Message, FSInputFile
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 from aiogram.filters.state import StatesGroup, State
-# from telegramQRbot.utils.create_qr.create_QR import create_qr
+
 from telegramQRbot.config import Config
 
 from telegramQRbot.tasks.qr import generate_qr
@@ -140,27 +140,18 @@ async def get_size_qr(message: Message, state: FSMContext):
 
 
 
-
-        # внутри handler-а:
         job_id = str(uuid4())
+
         payload = {
             "job_id": job_id,
             "chat_id": message.chat.id,
-            "user_id": message.from_user.id,
-            "reply_to_message_id": message.message_id,  # лучше так назвать
             "qr_text": user_data["enter_text"],
             "qr_size": int(user_data["choosing_size_qr"]),
-            "created_at": int(time.time()),
-            "attempt": 0,
         }
 
         generate_qr.delay(payload)
-        await message.answer("Запрос принят, генерирую…")
-
-
-
-
-
+        await message.answer("Запрос принят ✅ Генерирую QR…")
+        await state.clear()
 
         keyboard_qr = InlineKeyboardBuilder()
 
