@@ -10,13 +10,8 @@ from telegramQRbot.config import Config
 
 from telegramQRbot.tasks.qr import generate_qr
 
-
 from logging_config import get_logger
 from uuid import uuid4
-
-
-
-
 
 router = Router()
 
@@ -141,7 +136,6 @@ async def get_text_for_qr(message: Message, state: FSMContext):
 
         keyboard_size.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
 
-
         await state.update_data(enter_text=message.text)
         await message.answer('Теперь выберите размер qr-кода от 1 до 10', reply_markup=keyboard_size.as_markup())
         await state.set_state(QR_State.choosing_size_qr)
@@ -153,8 +147,6 @@ async def get_size_qr(callback_query: types.CallbackQuery, state: FSMContext):
         await state.update_data(choosing_size_qr=callback_query.data.replace("create_qr_", ""))
         user_data = await state.get_data()
         await callback_query.message.answer(f'Запрос принят! 💭Уже создаю ответ!')
-
-
 
         job_id = str(uuid4())
 
@@ -174,7 +166,6 @@ async def get_size_qr(callback_query: types.CallbackQuery, state: FSMContext):
         keyboard_qr.row(InlineKeyboardButton(text='Создать ещё', callback_data='create_qr'))
         keyboard_qr.row(InlineKeyboardButton(text='Отблагодарить автора бота', callback_data='gift_creator'))
         keyboard_qr.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
-
 
         logger.info(
             f"{callback_query.message.from_user.id} {callback_query.message.from_user.username} {callback_query.message.from_user.first_name} {callback_query.message.from_user.last_name} создал qr-код")
