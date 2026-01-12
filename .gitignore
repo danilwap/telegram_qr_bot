@@ -12,3 +12,4 @@ config.py
 .env
 .env.*
 !.env.example
+data/qrs

@@ -13,7 +13,7 @@ from telegramQRbot.tasks.qr import generate_qr
 
 from logging_config import get_logger
 from uuid import uuid4
-import time
+
 
 
 
@@ -126,17 +126,33 @@ async def get_text_for_qr(message: Message, state: FSMContext):
     if len(message.text) > 4000:
         await message.answer('Длина текста или ссылки должна быть меньше 4000 символов, сократите ваш текст')
     else:
+
+        keyboard_size = InlineKeyboardBuilder()
+
+        buttons = [
+            InlineKeyboardButton(
+                text=str(i),
+                callback_data=f"create_qr_{i}"
+            )
+            for i in range(1, 11)
+        ]
+
+        keyboard_size.row(*buttons, width=5)
+
+        keyboard_size.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
+
+
         await state.update_data(enter_text=message.text)
-        await message.answer('Теперь пришлите размер qr-кода от 1 до 10')
+        await message.answer('Теперь выберите размер qr-кода от 1 до 10', reply_markup=keyboard_size.as_markup())
         await state.set_state(QR_State.choosing_size_qr)
 
 
-@router.message(QR_State.choosing_size_qr)
-async def get_size_qr(message: Message, state: FSMContext):
-    if message.text in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
-        await state.update_data(choosing_size_qr=message.text)
+@router.callback_query(F.func(lambda c: c.data and c.data.startswith('create_qr_')))
+async def get_size_qr(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data in [f"create_qr_{i}" for i in range(11)]:
+        await state.update_data(choosing_size_qr=callback_query.data.replace("create_qr_", ""))
         user_data = await state.get_data()
-        await message.answer(f'Запрос принят! 💭Уже создаю ответ!')
+        await callback_query.message.answer(f'Запрос принят! 💭Уже создаю ответ!')
 
 
 
@@ -144,13 +160,13 @@ async def get_size_qr(message: Message, state: FSMContext):
 
         payload = {
             "job_id": job_id,
-            "chat_id": message.chat.id,
+            "chat_id": callback_query.message.chat.id,
             "qr_text": user_data["enter_text"],
             "qr_size": int(user_data["choosing_size_qr"]),
         }
 
         generate_qr.delay(payload)
-        await message.answer("Запрос принят ✅ Генерирую QR…")
+        await callback_query.message.answer("Запрос принят ✅ Генерирую QR…")
         await state.clear()
 
         keyboard_qr = InlineKeyboardBuilder()
@@ -161,10 +177,16 @@ async def get_size_qr(message: Message, state: FSMContext):
 
 
         logger.info(
-            f"{message.from_user.id} {message.from_user.username} {message.from_user.first_name} {message.from_user.last_name} создал qr-код")
+            f"{callback_query.message.from_user.id} {callback_query.message.from_user.username} {callback_query.message.from_user.first_name} {callback_query.message.from_user.last_name} создал qr-код")
         await state.clear()
     else:
-        await message.answer('Напишите размер qr-кода от 1 до 10')
+        keyboard_size = InlineKeyboardBuilder()
+
+        keyboard_size.row(InlineKeyboardButton(text='Создать ещё', callback_data='create_qr'))
+        keyboard_size.row(InlineKeyboardButton(text='Отблагодарить автора бота', callback_data='gift_creator'))
+        keyboard_size.row(InlineKeyboardButton(text='Вернуться в меню', callback_data='/menu'))
+
+        await callback_query.message.answer('Напишите размер qr-кода от 1 до 10')
 
 
 # Команда другие боты
