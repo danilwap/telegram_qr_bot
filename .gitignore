@@ -1,5 +1,6 @@
 .venv
 src/data/config.py
+__pycache__/
 .idea
 src/__pycache__/
 plan.txt
@@ -8,4 +9,7 @@ src/utils/create_qr/__pycache__/
 *.log
 *.db
 config.py
-
+.env
+.env.*
+!.env.example
+data/qrs
