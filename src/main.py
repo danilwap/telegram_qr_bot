@@ -2,13 +2,13 @@ import asyncio
 
 from telegramQRbot.utils.db.core import DatabaseManager
 from pathlib import Path
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "data" / "my_database.db"
 from logging_config import get_logger
 from telegramQRbot.bot import bot, dp
 from telegramQRbot.app import setup_routers
 from telegramQRbot.config import Config
-
 
 logger = get_logger(__name__)
 from pathlib import Path
@@ -17,13 +17,10 @@ import os
 
 from telegramQRbot.middlewares.config import ConfigMiddleware
 
-
-
 BASE_DIR = Path(__file__).resolve().parent.parent  # src → project
 
 # Загружаем общий .env
 load_dotenv(BASE_DIR / ".env")
-
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DEV_CHECK = os.getenv("DEV_CHECK")
@@ -33,7 +30,6 @@ ADMINS = ADMINS.split(",") if ADMINS else []
 
 
 async def main() -> None:
-
     db = DatabaseManager(DB_PATH)
     db.create_tables()  # если create_tables сделаешь async, или просто вызов db.create_tables()
 
@@ -46,7 +42,6 @@ async def main() -> None:
 
     dp['db'] = db
     dp.update.middleware(ConfigMiddleware(cfg))
-
 
     try:
         logger.info('Bot started.')
